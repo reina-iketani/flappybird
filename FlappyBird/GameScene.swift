@@ -6,27 +6,41 @@
 //
 
 import SpriteKit
+import AVFoundation
+
+var soundPlayer: AVAudioPlayer!
+
 
 class GameScene: SKScene, SKPhysicsContactDelegate {
+    
+    
     
     var scrollNode:SKNode!
     var wallNode:SKNode!
     var bird:SKSpriteNode!
+    var heartNode:SKNode!
     
     //衝突判定カテゴリー追加
     let birdCategory: UInt32 = 1 << 0
     let groundCategory: UInt32 = 1 << 1
     let wallCategory:  UInt32 = 1 << 2
-    let scoreCategory:UInt32 = 1 << 3
+    let itemuScoreCategory:  UInt32 = 1 << 3
+    let scoreCategory:UInt32 = 1 << 4
     
     //スコア用
     var score = 0
     var scoreLabelNode:SKLabelNode!
     var bestScoreLabelNode:SKLabelNode!
     let userDefaluts:UserDefaults = UserDefaults.standard
+    
+    var itemscore = 0
+    var itemScoreLavelNode:SKLabelNode!
+    
 
-    //SKView上にシーンが表示された時にバレるメソッド
+    //SKView上にシーンが表示された時に呼ばれるメソッド
     override func didMove(to view: SKView) {
+        
+        
         
         //重力を設定
         physicsWorld.gravity = CGVector(dx: 0, dy: -4)
@@ -42,14 +56,22 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         wallNode = SKNode()
         scrollNode.addChild(wallNode)
         
+        //heart
+        heartNode = SKNode()
+        scrollNode.addChild(heartNode)
+        
         //各種スプライトを生成する処理をメソッドに分ける
         setupGround()
         setupCloud()
         setupWall()
         setupBird()
+        setupHeart()
         
         //スコアラベルの設定
         setupScoreLabel()
+        
+        
+        
     }
     
     func setupGround(){
@@ -227,6 +249,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             
             //壁を表示するノードに今回作成した壁を追加
             self.wallNode.addChild(wall)
+            
+            
+        
         })
         //次の壁までの時間まちのアクションを作成
         let waitAnimation = SKAction.wait(forDuration: 2)
@@ -238,6 +263,47 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         wallNode.run(repeatForeverAnimation)
         
     }
+    
+    func setupHeart() {
+        // ハートの画像を読み込む
+        let heartTexture = SKTexture(imageNamed: "heart")
+        heartTexture.filteringMode = .linear
+        
+        // ハートのサイズ
+        let heartSize = CGSize(width: 20, height: 20)
+        
+        let movingDistance = self.frame.size.width + heartTexture.size().width
+        // 画面外まで移動するアクションを作成
+        let moveHeart = SKAction.moveBy(x: -movingDistance, y: 0, duration: 9)
+        
+        let removeHeart = SKAction.removeFromParent()
+        let heartAnimation = SKAction.sequence([moveHeart, removeHeart])
+        
+        
+        
+        // ハートを生成して配置
+        let createHeart = SKAction.run {
+            
+            let heart = SKSpriteNode(texture: heartTexture, size: heartSize)
+            
+            let randomY = CGFloat.random(in: self.frame.height / 2 ... self.frame.height * 2 / 3)
+            heart.position = CGPoint(x: self.frame.size.width + heartSize.width, y: randomY )
+            heart.zPosition = -30 // 鳥より手前、地面より奥
+            heart.physicsBody = SKPhysicsBody(rectangleOf: heartSize)
+            heart.physicsBody?.categoryBitMask = self.itemuScoreCategory
+            heart.physicsBody?.isDynamic = false
+            heart.run(heartAnimation)
+            self.heartNode.addChild(heart)
+        }
+        
+        let waitAnimation = SKAction.wait(forDuration: 2)
+        let repeatForeverAnimation = SKAction.repeatForever(SKAction.sequence([createHeart, waitAnimation]))
+        heartNode.run(repeatForeverAnimation)
+        
+        
+    }
+
+    
     
     func setupBird(){
         //鳥の画像を２種類読み込む
@@ -260,7 +326,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         //カテゴリー設定
         bird.physicsBody?.categoryBitMask = birdCategory
         bird.physicsBody?.collisionBitMask = groundCategory | wallCategory
-        bird.physicsBody?.contactTestBitMask = groundCategory | wallCategory | scoreCategory
+        bird.physicsBody?.contactTestBitMask = groundCategory | wallCategory | scoreCategory | itemuScoreCategory
+       
+        
         
         //衝突した時に回転させない
         bird.physicsBody?.allowsRotation = false
@@ -282,6 +350,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             bird.physicsBody?.applyImpulse(CGVector(dx: 0, dy: 15))
         } else if bird.speed == 0 {
             restart()
+            
         }
         
         
@@ -289,12 +358,25 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     //SKPhysicsContactDelegateのメソッド。衝突した時に呼ばれる
     func didBegin(_ contact: SKPhysicsContact) {
+        
         //ゲームオーバーの時は何もしない
         if scrollNode.speed <= 0{
             return
         }
         
-        if (contact.bodyA.categoryBitMask & scoreCategory) == scoreCategory || (contact.bodyB.categoryBitMask & scoreCategory) == scoreCategory {
+        //heartと衝突
+        if contact.bodyA.categoryBitMask == itemuScoreCategory || contact.bodyB.categoryBitMask == itemuScoreCategory {
+                // heartに衝突した場合、itemscoreを増やす
+                print("itemScoreUp")
+                itemscore += 1
+                // スコアを更新する
+                itemScoreLavelNode.text = "ItemScore: \(itemscore)"
+                PowerupSound()
+                contact.bodyA.node?.removeFromParent()
+                
+            }
+        
+        else if (contact.bodyA.categoryBitMask & scoreCategory) == scoreCategory || (contact.bodyB.categoryBitMask & scoreCategory) == scoreCategory {
             //スコアカウント用の透明な壁と衝突した
             print("ScoreUP")
             score += 1
@@ -329,13 +411,21 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 //回転が終わったら鳥の動きを止める
                 self.bird.speed = 0
             })
+            
         }
+        
+        
+        
     }
     
     func restart() {
+        
+        
         //スコアを０にする
         score = 0
         scoreLabelNode.text = "Score:\(score)"
+        itemscore = 0
+        itemScoreLavelNode.text = "Item Score:\(itemscore)"
         
         //鳥を初期位置に戻し、壁と地面の両方に反発するように戻す
         bird.position = CGPoint(x: self.frame.size.width * 0.2, y: self.frame.size.height * 0.7)
@@ -351,6 +441,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         //スクロールを再開させる
         scrollNode.speed = 1
+        
+        
         
     }
     
@@ -373,6 +465,32 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         bestScoreLabelNode.horizontalAlignmentMode = SKLabelHorizontalAlignmentMode.left
         bestScoreLabelNode.text = "Best Score:\(bestScore)"
         self.addChild(bestScoreLabelNode)
+        
+        //itemscoreラベル表示
+        itemscore = 0
+        itemScoreLavelNode = SKLabelNode()
+        itemScoreLavelNode.fontColor = UIColor.black
+        itemScoreLavelNode.position = CGPoint(x: 10, y: self.frame.size.height-120)
+        itemScoreLavelNode.zPosition = 100
+        itemScoreLavelNode.horizontalAlignmentMode = SKLabelHorizontalAlignmentMode.left
+        itemScoreLavelNode.text = "Item Score:\(itemscore)"
+        self.addChild(itemScoreLavelNode)
     }
+    
+    func PowerupSound() {
+        guard let url = Bundle.main.url(forResource: "powerup01", withExtension: "mp3") else {
+            print("Failed to find sound file")
+            return
+        }
+        
+        do {
+            soundPlayer = try AVAudioPlayer(contentsOf: url)
+            soundPlayer?.play()
+        } catch {
+            print("Failed to create audio player")
+        }
+    }
+    
+    
     
 }

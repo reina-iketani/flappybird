@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3B1E6E152A36E4630041FE99 /* powerup01.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 3B1E6E142A36E4630041FE99 /* powerup01.mp3 */; };
+		3B1E6E172A380C2B0041FE99 /* bgm.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 3B1E6E162A380C2B0041FE99 /* bgm.mp3 */; };
 		3B29E2952A2EFBB200C37B18 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B29E2942A2EFBB200C37B18 /* AppDelegate.swift */; };
 		3B29E2972A2EFBB200C37B18 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B29E2962A2EFBB200C37B18 /* SceneDelegate.swift */; };
 		3B29E2992A2EFBB200C37B18 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B29E2982A2EFBB200C37B18 /* ViewController.swift */; };
@@ -17,6 +19,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		3B1E6E142A36E4630041FE99 /* powerup01.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = powerup01.mp3; sourceTree = "<group>"; };
+		3B1E6E162A380C2B0041FE99 /* bgm.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = bgm.mp3; sourceTree = "<group>"; };
 		3B29E2912A2EFBB200C37B18 /* FlappyBird.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FlappyBird.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B29E2942A2EFBB200C37B18 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		3B29E2962A2EFBB200C37B18 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -62,6 +66,8 @@
 				3B29E2962A2EFBB200C37B18 /* SceneDelegate.swift */,
 				3B29E2982A2EFBB200C37B18 /* ViewController.swift */,
 				3B29E2A82A2F020B00C37B18 /* GameScene.swift */,
+				3B1E6E142A36E4630041FE99 /* powerup01.mp3 */,
+				3B1E6E162A380C2B0041FE99 /* bgm.mp3 */,
 				3B29E29A2A2EFBB200C37B18 /* Main.storyboard */,
 				3B29E29D2A2EFBB300C37B18 /* Assets.xcassets */,
 				3B29E29F2A2EFBB300C37B18 /* LaunchScreen.storyboard */,
@@ -130,6 +136,8 @@
 			files = (
 				3B29E2A12A2EFBB300C37B18 /* LaunchScreen.storyboard in Resources */,
 				3B29E29E2A2EFBB300C37B18 /* Assets.xcassets in Resources */,
+				3B1E6E152A36E4630041FE99 /* powerup01.mp3 in Resources */,
+				3B1E6E172A380C2B0041FE99 /* bgm.mp3 in Resources */,
 				3B29E29C2A2EFBB200C37B18 /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
