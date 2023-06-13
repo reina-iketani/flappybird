@@ -40,7 +40,17 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     //SKView上にシーンが表示された時に呼ばれるメソッド
     override func didMove(to view: SKView) {
         
+        guard let url = Bundle.main.url(forResource: "powerup01", withExtension: "mp3") else {
+            print("Failed to find sound file")
+            return
+        }
         
+        do {
+            soundPlayer = try AVAudioPlayer(contentsOf: url)
+            soundPlayer.prepareToPlay()
+        } catch {
+            print("Failed to create audio player")
+        }
         
         //重力を設定
         physicsWorld.gravity = CGVector(dx: 0, dy: -4)
@@ -272,9 +282,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // ハートのサイズ
         let heartSize = CGSize(width: 20, height: 20)
         
-        let movingDistance = self.frame.size.width + heartTexture.size().width
+        let movingDistance = self.frame.size.width + 40
         // 画面外まで移動するアクションを作成
-        let moveHeart = SKAction.moveBy(x: -movingDistance, y: 0, duration: 9)
+        let moveHeart = SKAction.moveBy(x: -movingDistance, y: 0, duration: 4)
         
         let removeHeart = SKAction.removeFromParent()
         let heartAnimation = SKAction.sequence([moveHeart, removeHeart])
@@ -287,7 +297,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             let heart = SKSpriteNode(texture: heartTexture, size: heartSize)
             
             let randomY = CGFloat.random(in: self.frame.height / 2 ... self.frame.height * 2 / 3)
-            heart.position = CGPoint(x: self.frame.size.width + heartSize.width, y: randomY )
+            
+            heart.position = CGPoint(x: self.frame.size.width + heartSize.width   , y: randomY )
             heart.zPosition = -30 // 鳥より手前、地面より奥
             heart.physicsBody = SKPhysicsBody(rectangleOf: heartSize)
             heart.physicsBody?.categoryBitMask = self.itemuScoreCategory
@@ -296,7 +307,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             self.heartNode.addChild(heart)
         }
         
-        let waitAnimation = SKAction.wait(forDuration: 2)
+        let waitAnimation = SKAction.wait(forDuration: 1 )
         let repeatForeverAnimation = SKAction.repeatForever(SKAction.sequence([createHeart, waitAnimation]))
         heartNode.run(repeatForeverAnimation)
         
@@ -365,16 +376,20 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         }
         
         //heartと衝突
-        if contact.bodyA.categoryBitMask == itemuScoreCategory || contact.bodyB.categoryBitMask == itemuScoreCategory {
+        if (contact.bodyA.categoryBitMask & itemuScoreCategory)  == itemuScoreCategory || (contact.bodyB.categoryBitMask & itemuScoreCategory)  == itemuScoreCategory {
                 // heartに衝突した場合、itemscoreを増やす
                 print("itemScoreUp")
                 itemscore += 1
                 // スコアを更新する
                 itemScoreLavelNode.text = "ItemScore: \(itemscore)"
                 PowerupSound()
+            if (contact.bodyA.categoryBitMask & itemuScoreCategory )  == itemuScoreCategory {
                 contact.bodyA.node?.removeFromParent()
-                
+            } else {
+                contact.bodyB.node?.removeFromParent()
             }
+                
+        }
         
         else if (contact.bodyA.categoryBitMask & scoreCategory) == scoreCategory || (contact.bodyB.categoryBitMask & scoreCategory) == scoreCategory {
             //スコアカウント用の透明な壁と衝突した
@@ -435,7 +450,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         //全ての壁を取り除く
         wallNode.removeAllChildren()
-        
+        heartNode.removeAllChildren()
         //鳥の羽ばたきを戻す
         bird.speed = 1
         
@@ -478,17 +493,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func PowerupSound() {
-        guard let url = Bundle.main.url(forResource: "powerup01", withExtension: "mp3") else {
-            print("Failed to find sound file")
-            return
-        }
-        
-        do {
-            soundPlayer = try AVAudioPlayer(contentsOf: url)
+       
             soundPlayer?.play()
-        } catch {
-            print("Failed to create audio player")
-        }
+       
     }
     
     
